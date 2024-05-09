@@ -31,6 +31,8 @@ mc_get_tm = function(mc,
     return(peak)
   }) |>
     dplyr::bind_rows()
+
+  # if no peak is found
   return(result)
 }
 

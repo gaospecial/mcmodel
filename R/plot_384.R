@@ -43,10 +43,16 @@ plot_384_single_concentration = function(data, species, well_size = 5){
   p
 }
 
+
+#' plot a 384-well plate
+#'
+#' @param data plate layout
+#'
+#' @return a ggplot object
+#' @export
 plot_384 = function(data = NULL){
   plate = plate384()
-  if (!is.null(data)) plate = plate |> dplyr::left_join(data)
-  if (!is.null(data)) plate = plate |> dplyr::left_join(data)
+  if (!is.null(data)) plate = plate |> dplyr::left_join(data, by = 'well_position')
   ggplot2::ggplot(plate, ggplot2::aes(col, row)) +
     ggplot2::scale_x_continuous(position = "top", breaks = 1:24, limits = c(0, 25), expand = ggplot2::expansion()) +
     ggplot2::scale_y_reverse(label = function(x) LETTERS[x], breaks = 1:16, limits = c(17, 0), expand = ggplot2::expansion()) +

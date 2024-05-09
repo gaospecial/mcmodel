@@ -1,0 +1,180 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# mcmodel
+
+<!-- badges: start -->
+`r badger::badge_github_version("gaospecial/mcmodel", color = "blue")`
+<!-- badges: end -->
+
+The goal of `mcmodel` is to standardize the method for melting curve data modelling and prediction.
+
+## Installation
+
+You can install the development version of mcmodel from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("gaospecial/mcmodel")
+```
+
+```{r}
+library(mcmodel)
+library(dplyr)
+library(readr)
+library(ggplot2)
+```
+
+```{r include=FALSE}
+devtools::load_all()
+```
+
+
+## 读取熔解曲线数据
+
+
+```{r}
+# sample data
+file = system.file("quantstudio", "quantstudio-export.txt.gz", package = 'mcmodel')
+all_data = read_quantstudio(file)
+```
+
+
+`all_data` contains all information in that file, including experimental setting, melting curve data, and so on.
+
+```{r}
+all_data
+```
+
+We use `get_quantstudio_melting_curve()` to get melting curve dataset.
+
+```{r}
+melting_curve_data = get_quantstudio_melting_curve(all_data)
+melting_curve_data
+```
+
+In this experiment, these are > 81k observations of six variables.
+
+## 绘制熔解曲线
+
+If you want to plot the melting curve, just use the `plot_quantstudio_melting_curve()`.
+
+```{r}
+plot_quantstudio_melting_curve(melting_curve_data)
+```
+
+Type `?plot_quantstudio_melting_curve` in your console, and you may find that there is a extra argument for this function.
+
+```{r}
+plot_quantstudio_melting_curve(melting_curve_data, y = "derivative")
+```
+
+If you want to scale up this plot,
+
+```{r}
+plot_quantstudio_melting_curve(melting_curve_data, y = "derivative") +
+  coord_cartesian(xlim = c(80, 90))
+```
+
+Likewise, you may get the amplification data, and plot it.
+
+```{r}
+amplification_data = get_quantstudio_amplication(all_data)
+plot_quantstudio_amplification_curve(amplification_data)
+```
+
+This is just a small step to proceed this program, and it is the way what I want.
+
+### Plot Community Structure in 384-well Plate
+
+空白的平板，这样画：
+
+```{r}
+plot_384() +
+  geom_point(color = "grey", size = 5)
+```
+
+画单一物种的数量。首先画大肠杆菌的含量（log2）。
+
+Plate.
+
+```{r}
+file =  system.file("quantstudio", "quantstudio-plate.csv.gz", package = 'mcmodel')
+concentration = read_csv(file)
+concentration
+```
+
+```{r}
+plot_384_single_concentration(concentration, species = "label_E")
+```
+
+其次，用另外一个颜色画假单胞菌的含量。
+
+```{r}
+plot_384_single_concentration(concentration, species = "label_P")
+```
+
+画每个孔的结构。
+
+```{r}
+plot_384_community_structure(concentration)
+```
+
+## 使用 MeltingCurve 对象
+
+使用 `MeltingCurve` 对象可以确保数据不会被意外修改。
+
+**创建 MC 对象**
+
+从实验原始数据创建 MC 对象。
+
+```{r}
+all_data
+mc = quantstudio2mc(all_data)
+```
+
+画熔解曲线。
+
+```{r}
+plot_mc(mc, show_tm = FALSE)
+```
+
+过滤熔解曲线的温度范围，以及反应孔。
+
+```{r}
+mc_narrow = filterData(mc, 82, 86, c("A1","A2","B1","B2"))
+plot_mc(mc_narrow, show_tm = FALSE)
+```
+
+对熔解曲线进行重采样。
+
+```{r}
+mc_low = transformData(mc_narrow, step = 0.5)
+plot_mc(mc_low)
+```
+
+将对象转变成建模数据集。
+
+```{r}
+df = mc_tbl2wider(mc_low)
+df
+```
+
+主成分分析。
+
+```{r}
+pca = mc_pca(mc_low)
+mc_pca_plot(pca)
+```
