@@ -1,0 +1,121 @@
+---
+title: "melting-curve-class"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{melting-curve-class}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r}
+library(mcmodel)
+library(dplyr)
+library(readr)
+library(ggplot2)
+```
+
+
+## Read from QuantStudio results
+
+Read qPCR data.
+
+```{r}
+# sample data
+file = system.file("quantstudio", "quantstudio-export.txt.gz", package = 'mcmodel')
+all_data = read_quantstudio(file)
+all_data
+```
+
+Plate.
+
+```{r}
+
+file =  system.file("quantstudio", "quantstudio-plate.csv.gz", package = 'mcmodel')
+plate = read_csv(file)
+plate
+```
+
+## Plate setting
+
+```{r}
+plot_384_single_concentration(plate, "label_E")
+```
+
+```{r}
+plot_384_community_structure(plate)
+```
+
+## MC object
+
+`MC` stands for `MeltingCurve` object.
+
+Construct a `MeltingCurve` object.
+
+```{r}
+mc = quantstudio2mc(all_data, plate = plate)
+```
+
+Filter data by temperature range and well positions.
+
+```{r}
+mc2 = filterData(mc, from = 80, to = 90, well_position = paste0("A",3:4))
+
+# plot
+plot_mc(mc2, show_tm = TRUE)
+```
+
+Compare filtered `mc2` and re-sampled `mc3`.
+
+```{r fig.width=5,fig.height=5}
+getData(mc2)
+mc3 = transformData(mc2, step = 0.03)
+getData(mc3)
+mc4 = transformData(mc2, step = 0.5)
+getData(mc4)
+
+plots = lapply(list(mc2,mc3,mc4), plot_mc, show_tm = TRUE)
+aplot::plot_list(gglist = plots, ncol = 1, labels = paste0("step = ", c(0.1, 0.03, 0.5)))
+```
+
+Transform `MeltingCuve` to a tibble.
+
+```{r}
+mc_tbl = filterData(mc, from = 80, to = 84) |> 
+  mc2tbl()
+mc_tbl
+```
+
+
+```{r}
+mc_four_well = filterData(mc, well_position = c("A1","A2","B1","B2")) 
+mc_tbl_w = mc_tbl2wider(mc_four_well)
+mc_tbl_w
+```
+
+### PCA analysis
+
+```{r}
+pca = mc_pca(mc_four_well)
+mc_pca_plot(pca, show_temperature = F, temp_n = 1, extra = plate, color = "sample_name")
+```
+
+
+## Two table analysis
+
+```{r}
+library(vegan)
+pca = rda(mc_tbl_w |> select(starts_with("T")))
+summary(pca)
+```
+
+```{r}
+
+```
+
