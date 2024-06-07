@@ -33,7 +33,7 @@ read_quantstudio = function(file){
     if (grepl("Well", content[1])) {
       type = list(well = 'c')
     }
-    raw[[i]] = readr::read_delim(I(content),
+    raw[[i]] = readr::read_tsv(I(content),
                           trim_ws = TRUE,
                           show_col_types = FALSE,
                           name_repair = lower_join,
@@ -48,7 +48,7 @@ read_quantstudio = function(file){
 extract_meta = function(meta_lines) {
   if (length(meta_lines) < 1) return(NULL)
   meta_lines = gsub("^\\* ", "", meta_lines) |> trimws()
-  l = strsplit(meta_lines,"\\s+=\\s+")
+  l = stringr::str_split(meta_lines,"\\s*=\\s*")
   name = sapply(l, `[[`, 1) |> lower_join()
   value = sapply(l, `[[`, 2)
   if (length(unique(name)) != length(value)) stop("Names of meta have different length to their values")
