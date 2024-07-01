@@ -83,6 +83,9 @@ get_quantstudio_run_time = function(x){
   meta = get_by_name(x, "Meta")
   if ("experiment_run_start_time" %in% names(meta)) {
     return(meta[["experiment_run_start_time"]] |> as.Date())
+  } else if ("experiment_run_end_time" %in% names(meta)){
+    message("Using run end time...")
+    return(meta[["experiment_run_end_time"]] |> as.Date())
   } else {
     warning("Could not find run start time of this object.")
     return(NULL)
