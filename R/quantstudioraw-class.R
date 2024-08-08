@@ -55,5 +55,8 @@ pos2well = function(position){
 #' @export
 print.QuantStudioRaw = function(x, ...){
   cat("An object of class 'QuantStudioRaw':\n")
-  cat("   Slots: ", paste0(names(x), collapse = ", "), ";\n", sep = "")
+  extra = paste("Slots: ", paste0(names(x), collapse = ", "), ";\n", sep = "") |>
+    strwrap(exdent = 9, indent = 2) |>
+    paste(collapse = "\n")
+  cat(extra)
 }
