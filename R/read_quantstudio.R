@@ -103,7 +103,15 @@ get_quantstudio_melting_curve = function(x){
 #' @export
 #' @name quantstudio-access
 get_quantstudio_amplication = function(x){
-  get_by_name(x, "Amplification Data")
+  # well2position of 384-well plate
+  well2position = dplyr::tibble(
+    well = as.character(1:384),
+    well_position = paste0(rep(LETTERS[1:16],each=24),rep(1:24, times=16)))
+
+  # merge and remove column well
+  dplyr::right_join(well2position, get_by_name(x, "Amplification Data"), by = "well") |>
+    dplyr::select(-well)
+
 }
 
 #' @export
