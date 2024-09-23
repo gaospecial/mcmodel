@@ -50,6 +50,6 @@ plot_quantstudio_melting_curve = function(data,
 plot_quantstudio_amplification_curve = function(data, y = c("rn", "delta_rn")){
   y = match.arg(y)
   data |>
-    ggplot2::ggplot(ggplot2::aes_string("cycle", y, color = "well")) +
+    ggplot2::ggplot(ggplot2::aes_string("cycle", y, color = "well_position")) +
     ggplot2::geom_line(show.legend = FALSE)
 }
